@@ -7,7 +7,8 @@
     "error": "./error.mts:graph",
     "delay": "./delay.mts:graph",
     "dynamic": "./dynamic.mts:graph",
-    "agent_simple": "./agent_simple.mts:graph"
+    "agent_simple": "./agent_simple.mts:graph",
+    "naturgy": "./naturgy.mts:workflow"
   },
   "ui": {
     "agent": "./agent/ui.tsx"
