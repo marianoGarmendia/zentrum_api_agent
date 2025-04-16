@@ -6,20 +6,6 @@
     "node": "^18.19.0 || >=20.16.0"
   },
   "license": "MIT",
-  "main": "./dist/cli/spawn.mjs",
-  "files": [
-    "dist/"
-  ],
-  "exports": {
-    ".": {
-      "types": "./dist/cli/spawn.d.ts",
-      "default": "./dist/cli/spawn.mjs"
-    },
-    "./auth": {
-      "types": "./dist/auth/index.d.ts",
-      "default": "./dist/auth/index.mjs"
-    }
-  },
   "repository": {
     "type": "git",
     "url": "git@github.com:langchain-ai/langgraphjs-api.git"
