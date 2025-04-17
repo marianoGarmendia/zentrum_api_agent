@@ -14,20 +14,20 @@ const api = new Hono();
 
 // 👇 APLICAR CORS GLOBALES
 api.use(
-  '*',
+  "*",
   cors({
     origin: (origin) => {
       // Permití tu frontend (Render, Vercel, localhost, etc.)
       const allowedOrigins = [
-        'http://localhost:5173',
-        'https://langgraph-agent-chat-ui.onrender.com'
+        "http://localhost:5173",
+        "https://langgraph-agent-chat-ui.onrender.com",
       ];
-      return allowedOrigins.includes(origin ?? '') ? origin : '';
+      return allowedOrigins.includes(origin ?? "") ? origin : "";
     },
-    allowHeaders: ['Content-Type', 'Authorization'],
-    allowMethods: ['GET', 'POST', 'OPTIONS'],
-    credentials: true
-  })
+    allowHeaders: ["Content-Type", "Authorization"],
+    allowMethods: ["GET", "POST", "OPTIONS"],
+    credentials: true,
+  }),
 );
 
 // Threads Routes
