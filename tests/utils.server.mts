@@ -33,7 +33,7 @@ const { spawnServer } = (
 ) as typeof import("../src/cli/spawn.mjs");
 
 await spawnServer(
-  { port: "2024", nJobsPerWorker: "10", host: "https://apiagentfaceapp-production.up.railway.app" },
+  { port: "2024", nJobsPerWorker: "10", host: "apiagentfaceapp-production.up.railway.app" },
   { config, env, hostUrl: "https://smith.langchain.com" },
   { pid: process.pid, projectCwd: dirname(configPath) },
 );
