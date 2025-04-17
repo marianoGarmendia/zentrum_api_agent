@@ -1,24 +1,14 @@
 import {
   AIMessage,
- 
   SystemMessage,
-
   ToolMessage,
-
 } from "@langchain/core/messages";
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 import { ChatOpenAI } from "@langchain/openai";
 // import { TavilySearchResults } from "@langchain/community/tools/tavily_search";
 
-import {
-
-  StateGraph,
-
-  Command,
-
-  END,
-} from "@langchain/langgraph";
+import { StateGraph, Command, END } from "@langchain/langgraph";
 import {
   MemorySaver,
   Annotation,
@@ -44,9 +34,8 @@ import { encode } from "gpt-3-encoder";
 //   context: contexts.clinica.context,
 // };
 
-let info_seduvi={
-    id:"",
-
+let info_seduvi = {
+  id: "",
 };
 // let info_visita={};
 
@@ -79,27 +68,35 @@ const visitaSchema = z.object({
 type VisitaInput = z.infer<typeof visitaSchema>;
 
 // Definición de la herramienta
-const crearVisita = async ({departamento, piso, numero_de_casa,  nombre, id, horario, observacion}:VisitaInput, config:any) => {
-    // let config = { configurable: { thread_id: thread_id } };
-    const state = await workflow.getState(config);
+const crearVisita = async (
+  {
+    departamento,
+    piso,
+    numero_de_casa,
+    nombre,
+    id,
+    horario,
+    observacion,
+  }: VisitaInput,
+  config: any,
+) => {
+  const state = await workflow.getState(config);
 
-    const id_visita = state.values.info_visita?.ID_VISITA
-    const reference = config.configurable?.reference;
-    // const tool_call_id =
-    //   state.values.messages[state.values.messages.length - 1].tool_calls[0].id;
-      
-      console.log("id seduvi en crear visita", id);
-      console.log("id visita en crear visita", id_visita);
-      
-      const prompt = `
+  const id_visita = state.values.info_visita?.ID_VISITA;
+  const reference = config.configurable?.reference;
+
+  console.log("id seduvi en crear visita", id);
+  console.log("id visita en crear visita", id_visita);
+
+  const prompt = `
         informacion de la visita:
         departamento: ${departamento}
         piso: ${piso}
         numero de casa: ${numero_de_casa}
         nombre: ${nombre}
         observacion: ${observacion}
-      `
-      
+      `;
+
   try {
     const response = await fetch(
       "https://faceapp_test.techbank.ai:4002/public/visitas/",
@@ -115,20 +112,18 @@ const crearVisita = async ({departamento, piso, numero_de_casa,  nombre, id, hor
           TIPO_VISITA: 1,
           FORMA_VISITA: 0,
           PROPS: {
-            id_visita: id_visita || "", // ID de la visita (puede ser vacío para que el servidor lo genere automáticamente) en el caso de haber una segunda petición 
+            id_visita: id_visita || "", // ID de la visita (puede ser vacío para que el servidor lo genere automáticamente) en el caso de haber una segunda petición
             id_place: id,
             reference: reference || "",
             horario: horario,
             cliente: nombre,
             observacion: prompt,
-          }
-         
+          },
         }),
-      }
+      },
     );
 
     console.log("response crear visita", response);
-    
 
     if (!response.ok) {
       throw new Error(`Error en la solicitud: ${response.status}`);
@@ -136,7 +131,7 @@ const crearVisita = async ({departamento, piso, numero_de_casa,  nombre, id, hor
 
     const data = await response.json();
 
-    if(data){
+    if (data) {
       state.values.info_visita = data;
     }
 
@@ -153,13 +148,13 @@ const crearVisita = async ({departamento, piso, numero_de_casa,  nombre, id, hor
 //   TIPO_VISITA: 1,
 //   FORMA_VISITA: 0,
 //   PROPS: {
-//     id_visita: "", // ID de la visita (puede ser vacío para que el servidor lo genere automáticamente) en el caso de haber una segunda petición 
+//     id_visita: "", // ID de la visita (puede ser vacío para que el servidor lo genere automáticamente) en el caso de haber una segunda petición
 //     id_place: id,
 //     horario: horario,
 //     cliente: nombre,
 //     observacion: prompt,
 //   }
- 
+
 // }
 
 // respuesta despues de crear la visita
@@ -196,12 +191,12 @@ const get_seduvi = tool(
   async ({ alcaldia, calle, colonia, numero }, config) => {
     const baseUrl = "https://faceapp_test.techbank.ai:4002/public/places";
     // let config = { configurable: { thread_id: thread_id } };
-    const state = await workflow.getState({configurable: {thread_id: config.configurable.thread_id}});
+    const state = await workflow.getState({
+      configurable: { thread_id: config.configurable.thread_id },
+    });
 
     console.log(config);
     console.log("state values en get_seduvi", state.values);
-    
-    
 
     const tool_call_id =
       state.values.messages[state.values.messages.length - 1].tool_calls[0].id;
@@ -218,7 +213,6 @@ const get_seduvi = tool(
     const url = `${baseUrl}?${params.toString()}`;
 
     console.log("URL:", url);
-    
 
     try {
       const response = await fetch(url, {
@@ -229,37 +223,29 @@ const get_seduvi = tool(
       });
 
       const data = await response.json();
-      console.log("data seduvi",data[0]);
+      console.log("data seduvi", data[0]);
 
-      
+      let mensaje = "";
 
-      let mensaje = ""
-
-      if( !data[0] || !data[0]?.id) {
+      if (!data[0] || !data[0]?.id) {
         state.values.info_seduvi = null;
-        mensaje = "No hemos encontrado información en el seduvi, por favor verifica los datos ingresados o quizás no tenemos información de ese inmueble y quieras solicitar nuevo servicio"
-      }else{
+        mensaje =
+          "No hemos encontrado información en el seduvi, por favor verifica los datos ingresados o quizás no tenemos información de ese inmueble y quieras solicitar nuevo servicio";
+      } else {
         state.values.info_seduvi = data[0];
-        mensaje = "Hemos encontrado la siguiente información en el seduvi, podemos continuar con la coordinación de la visita"
+        mensaje =
+          "Hemos encontrado la siguiente información en el seduvi, podemos continuar con la coordinación de la visita";
       }
 
       return new Command({
         update: {
           info_seduvi: data[0],
-          messages: [
-            new ToolMessage(
-              mensaje,
-              tool_call_id,
-              "get_seduvi"
-            ),
-          ],
+          messages: [new ToolMessage(mensaje, tool_call_id, "get_seduvi")],
         },
       });
-
-   
     } catch (error) {
-        console.error("Error al obtener datos del SEDUVI:", error);
-        throw error;
+      console.error("Error al obtener datos del SEDUVI:", error);
+      throw error;
     }
   },
   {
@@ -269,10 +255,14 @@ const get_seduvi = tool(
     schema: z.object({
       alcaldia: z.string().describe("Lugar donde se encuentra el inmueble"),
       calle: z.string().describe("Calle donde se encuentra el inmueble"),
-      numero: z.string().describe("Numero de condominio donde se encuentra el inmueble, es el número externo"),
+      numero: z
+        .string()
+        .describe(
+          "Numero de condominio donde se encuentra el inmueble, es el número externo",
+        ),
       colonia: z.string().describe("Colonia donde se encuentra el inmueble"),
     }),
-  }
+  },
 );
 
 // const body_create_visita = {
@@ -280,7 +270,7 @@ const get_seduvi = tool(
 //     TIPO_VISITA: 1,
 //     FORMA_VISITA: 0,
 //     PROPS: {
-//       id_seduvi: 
+//       id_seduvi:
 //     },
 //     FECHA_VISITA: 'YYYY-MM-DD';
 //     HORA_VISITA: 'HH:mm:ss';
@@ -309,43 +299,51 @@ const get_seduvi = tool(
 //   },
 // ];
 
-
 const isVisited = tool(
-  async ({ observacion, horario ,piso,departamento, numero_de_casa, nombre}, config) => {
+  async (
+    { observacion, horario, piso, departamento, numero_de_casa, nombre },
+    config,
+  ) => {
     // let config = { configurable: { thread_id: thread_id } };
 
-    if(!horario  || !numero_de_casa || !piso || !departamento || !nombre) return "Faltan datos para coordinar la visita, ayuda al usuario a completar la inforacion faltante e indicale cuals son los datos que faltan para coordinar la visita"
+    if (!horario || !numero_de_casa || !piso || !departamento || !nombre)
+      return "Faltan datos para coordinar la visita, ayuda al usuario a completar la inforacion faltante e indicale cuals son los datos que faltan para coordinar la visita";
 
-    const state = await workflow.getState({configurable: {thread_id: config.configurable.thread_id}});
-   
+    const state = await workflow.getState({
+      configurable: { thread_id: config.configurable.thread_id },
+    });
 
-    console.log("id de info_seduvi desde el state en isVisited tool"+ state.values.info_seduvi.id)   
-    
+    console.log(
+      "id de info_seduvi desde el state en isVisited tool" +
+        state.values.info_seduvi.id,
+    );
+
     // info_visita = {
-      
+
     //     observacion: observacion,
     //     confirm: true,
     // }
 
     // id del seduvi
-    const {id} = info_seduvi
+    const { id } = info_seduvi;
 
-    const response_visita = await crearVisita({
+    const response_visita = await crearVisita(
+      {
         numero_de_casa,
         departamento,
         piso,
-      nombre: nombre,
-      horario: horario,
-      id: id,
-      observacion
-    }, config)
+        nombre: nombre,
+        horario: horario,
+        id: id,
+        observacion,
+      },
+      config,
+    );
 
     console.log("response visita", response_visita);
-    
 
-    if(!response_visita) return "Error al crear la visita"
-    
-    
+    if (!response_visita) return "Error al crear la visita";
+
     const tool_call_id =
       state.values.messages[state.values.messages.length - 1].tool_calls[0].id;
     // console.log("tool call id", tool_call_id);
@@ -353,39 +351,43 @@ const isVisited = tool(
 
     return new Command({
       update: {
-          info_visita: {
-            dia: "",
+        info_visita: {
+          dia: "",
           hora: "",
           observacion: observacion,
           confirm: true,
         },
         messages: [
           new ToolMessage(
-              "Hemos coordinado una visita pronto se pondran en contacto contigo",
-              tool_call_id,
-              "isVisited"
-            ),
+            "Hemos coordinado una visita pronto se pondran en contacto contigo",
+            tool_call_id,
+            "isVisited",
+          ),
         ],
-    },
-});
+      },
+    });
   },
   {
     name: "isVisited",
-    description: "Confirmar si el usuario quiere recibir una visita y se crea una visita con lso datos recopilados",
+    description:
+      "Confirmar si el usuario quiere recibir una visita y se crea una visita con lso datos recopilados",
     schema: z.object({
-    
       observacion: z
         .string()
         .describe(
-          "Observaciones que tenga el cliente para la visita, si no anda el timbre, color de la puerta, que le avise al portero del edificio, etc."
+          "Observaciones que tenga el cliente para la visita, si no anda el timbre, color de la puerta, que le avise al portero del edificio, etc.",
         ),
-        nombre: z.string().describe("Nombre del cliente"),
-        horario: z.string().describe("El horario y los dias que tiene disponible el usuario para recibir la visita, dias y horas disponibles para ser visitado/a"),
-        numero_de_casa: z.string().describe("Numero de casa"),
-        piso: z.string().describe("Piso del cliente"),
-        departamento: z.string().describe("Departamento del cliente"),
+      nombre: z.string().describe("Nombre del cliente"),
+      horario: z
+        .string()
+        .describe(
+          "El horario y los dias que tiene disponible el usuario para recibir la visita, dias y horas disponibles para ser visitado/a",
+        ),
+      numero_de_casa: z.string().describe("Numero de casa"),
+      piso: z.string().describe("Piso del cliente"),
+      departamento: z.string().describe("Departamento del cliente"),
     }),
-  }
+  },
 );
 
 const tools = [isVisited, get_seduvi];
@@ -409,9 +411,6 @@ const newState = Annotation.Root({
 //   // other params...
 // }).bindTools(tools);
 
-
-
-
 export const model = new ChatOpenAI({
   model: "gpt-4o",
   streaming: true,
@@ -422,11 +421,10 @@ export const model = new ChatOpenAI({
 const toolNode = new ToolNode(tools);
 
 async function callModel(state: typeof newState.State, config: any) {
-  const { messages} = state;
+  const { messages } = state;
   const threadId = config.configurable?.thread_id;
   console.log("Thread ID:", threadId);
   state.thread_id = threadId;
-
 
   // console.log("sumary agent en callModel");
   // console.log("-----------------------");
@@ -434,7 +432,7 @@ async function callModel(state: typeof newState.State, config: any) {
 
   const systemsMessage = new SystemMessage(
     `
- Eres un asistente virtual de Faceapp enfocado exclusivamente en brindar información sobre el servicio de gas natural residencial y gestionar solicitudes de alta de servicio. Tu objetivo es ayudar a los usuarios a entender los beneficios del gas natural en el hogar, responder preguntas frecuentes con claridad y ofrecer un acompañamiento confiable, seguro y cercano.
+ Eres un asistente virtual de la Faceapp para la solicitud de contratación de naturgy, enfocado exclusivamente en brindar información sobre el servicio de gas natural residencial y gestionar solicitudes de alta de servicio. Tu objetivo es ayudar a los usuarios a entender los beneficios del gas natural en el hogar, responder preguntas frecuentes con claridad y ofrecer un acompañamiento confiable, seguro y cercano.
  Eres un asistente de ventas que vive en México. Tu forma de comunicarte debe ser respetuosa, amable y educada, utilizando un lenguaje claro, cálido y propio del español mexicano. Habla como si estuvieras atendiendo a un cliente en persona, con profesionalismo y cercanía.
 
 - El día de hoy es ${new Date().toLocaleString()} y la hora es ${new Date().toLocaleTimeString()}.
@@ -583,12 +581,12 @@ Información que debe recopilar la herramienta "isVisited" luego de haber consul
 
 
   
- `
+ `,
   );
 
   const response = await model.invoke([systemsMessage, ...messages]);
   console.log("call model");
-  
+
   console.log(state.info_seduvi);
   console.log(state.info_visita);
 
@@ -726,7 +724,7 @@ function shouldContinue(state: typeof newState.State) {
 
 //   if (messages.length > 3) {
 //     if (!summary) {
-//       const intructions_summary = `Como asistente de inteligencia artificial, tu tarea es resumir los siguientes mensajes para mantener el contexto de la conversación. Por favor, analiza cada mensaje y elabora un resumen conciso que capture la esencia de la información proporcionada, asegurándote de preservar el flujo y coherencia del diálogo 
+//       const intructions_summary = `Como asistente de inteligencia artificial, tu tarea es resumir los siguientes mensajes para mantener el contexto de la conversación. Por favor, analiza cada mensaje y elabora un resumen conciso que capture la esencia de la información proporcionada, asegurándote de preservar el flujo y coherencia del diálogo
 //         mensajes: ${prompt_to_messages}
 //         `;
 
@@ -738,7 +736,7 @@ function shouldContinue(state: typeof newState.State) {
 //       mensajes: ${prompt_to_messages}
 
 //       resumen previo: ${summary}
-      
+
 //       `;
 
 //       const summary_message = await model.invoke(instructions_with_summary);
