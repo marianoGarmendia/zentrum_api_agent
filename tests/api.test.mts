@@ -10,8 +10,10 @@ import { RemoteGraph } from "@langchain/langgraph/remote";
 import postgres from "postgres";
 import { randomUUID } from "crypto";
 
+const apiKey = process.env.OPENAI_API_KEY
+
 const API_URL = "http://localhost:2024";
-const client = new Client<any>({ apiUrl: API_URL });
+const client = new Client<any>({ apiUrl: API_URL, apiKey: apiKey });
 
 // Passed to all invocation requests as the graph now requires this field to be present
 // in `configurable` due to a new `SharedValue` field requiring it.

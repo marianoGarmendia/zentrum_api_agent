@@ -1,7 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 import {config} from "dotenv";
-import { log } from "node:util";
+
 config()
 
 
