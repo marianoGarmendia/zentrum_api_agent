@@ -133,7 +133,7 @@ const crearVisita = async ({departamento, piso, numero_de_casa,  nombre, id, hor
     }
 
     const data = await response.json();
-    
+
     if(data){
       state.values.info_visita = data;
     }
@@ -161,34 +161,34 @@ const crearVisita = async ({departamento, piso, numero_de_casa,  nombre, id, hor
 // }
 
 // respuesta despues de crear la visita
-const respuesta_crear_visita = {
-  "COD_EMP_MVX": 1,
-  "ID_USUARIO": 1,
-  "FECHA_PLANIFICADA": "2025-04-17T14:59:36.285Z",
-  "TIPO_VISITA": 1,
-  "FORMA_VISITA": 0,
-  "ESTADO": 0,
-  "PROPS": {
-    "id_place": 1,
-    "observacion": "la observacion"
-  },
-  "ID_RUTA": null,
-  "ID_CLIENTE": null,
-  "ID_CONTACTO": null,
-  "ID_CAPTACION": null,
-  "TITULO": null,
-  "FECHA_VISITA": null,
-  "HORA_VISITA": null,
-  "FECHA_INICIADA": null,
-  "FECHA_FINALIZADA": null,
-  "FECHA_CANCELADA": null,
-  "DURACION": null,
-  "ID_EJECUTOR": null,
-  "ID_RESPONSABLE": null,
-  "ID_VISITA": 102,
-  "FECHA_CREADO": "2025-04-17T14:59:36.306Z",
-  "FECHA_UPD": "2025-04-17T14:59:36.306Z"
-}
+// const respuesta_crear_visita = {
+//   "COD_EMP_MVX": 1,
+//   "ID_USUARIO": 1,
+//   "FECHA_PLANIFICADA": "2025-04-17T14:59:36.285Z",
+//   "TIPO_VISITA": 1,
+//   "FORMA_VISITA": 0,
+//   "ESTADO": 0,
+//   "PROPS": {
+//     "id_place": 1,
+//     "observacion": "la observacion"
+//   },
+//   "ID_RUTA": null,
+//   "ID_CLIENTE": null,
+//   "ID_CONTACTO": null,
+//   "ID_CAPTACION": null,
+//   "TITULO": null,
+//   "FECHA_VISITA": null,
+//   "HORA_VISITA": null,
+//   "FECHA_INICIADA": null,
+//   "FECHA_FINALIZADA": null,
+//   "FECHA_CANCELADA": null,
+//   "DURACION": null,
+//   "ID_EJECUTOR": null,
+//   "ID_RESPONSABLE": null,
+//   "ID_VISITA": 102,
+//   "FECHA_CREADO": "2025-04-17T14:59:36.306Z",
+//   "FECHA_UPD": "2025-04-17T14:59:36.306Z"
+// }
 
 const get_seduvi = tool(
   async ({ alcaldia, calle, colonia, numero }, config) => {
