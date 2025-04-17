@@ -90,6 +90,7 @@ For production use, please use LangGraph Cloud.
     {
       stdio: ["inherit", "inherit", "inherit", "ipc"],
       env: {
+        ...process.env,
         ...context.env,
         NODE_ENV: "development",
         LANGGRAPH_API_URL: localUrl,
