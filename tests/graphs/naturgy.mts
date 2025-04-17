@@ -73,7 +73,7 @@ const visitaSchema = z.object({
   nombre: z.string().describe("Nombre del cliente"),
   id: z.string().describe("ID del cliente"),
   horario: z.string().describe("Horario de la visita"),
-  observacion: z.string().describe("Observaciones adicionales"),
+  observacion: z.string().describe("Observaciones adicionales sobre la visita"),
 });
 
 type VisitaInput = z.infer<typeof visitaSchema>;
@@ -211,7 +211,7 @@ const get_seduvi = tool(
     schema: z.object({
       alcaldia: z.string().describe("Lugar donde se encuentra el inmueble"),
       calle: z.string().describe("Calle donde se encuentra el inmueble"),
-      numero: z.string().describe("Numero de condominio"),
+      numero: z.string().describe("Numero de condominio donde se encuentra el inmueble"),
       colonia: z.string().describe("Colonia donde se encuentra el inmueble"),
     }),
   }
@@ -319,10 +319,10 @@ const isVisited = tool(
       observacion: z
         .string()
         .describe(
-          "La franja horaria y los dias que tiene disponible el usuario para recibir la visita"
+          "Observaciones que tenga el cliente para la visita, si no anda el timbre, color de la puerta, que le avise al portero del edificio, etc."
         ),
         nombre: z.string().describe("Nombre del cliente"),
-        horario: z.string().describe("La franja horaria y los dias que tiene disponible el usuario para recibir la visita, dias y franja horaria disponible para ser visitado"),
+        horario: z.string().describe("El horario y los dias que tiene disponible el usuario para recibir la visita, dias y horas disponibles para ser visitado/a"),
         numero_de_casa: z.string().describe("Numero de casa"),
         piso: z.string().describe("Piso del cliente"),
         departamento: z.string().describe("Departamento del cliente"),
@@ -378,6 +378,8 @@ async function callModel(state: typeof newState.State, config: any) {
     `
  Eres un asistente virtual de Faceapp enfocado exclusivamente en brindar información sobre el servicio de gas natural residencial y gestionar solicitudes de alta de servicio. Tu objetivo es ayudar a los usuarios a entender los beneficios del gas natural en el hogar, responder preguntas frecuentes con claridad y ofrecer un acompañamiento confiable, seguro y cercano.
 
+- El día de hoy es ${new Date().toLocaleString()} y la hora es ${new Date().toLocaleTimeString()}.
+
     Contexto de Naturgy para hogares:
 
 - Naturgy ofrece un servicio de gas natural residencial que se adapta a las necesidades de cada vivienda, permitiendo realizar las actividades diarias sin preocupaciones.
@@ -399,25 +401,25 @@ Compara precios de forma clara y amigable, utilizando ejemplos concretos y resal
 
 Información actualizada de precios:
 
-- Bombona de 20 kg:
+- Tanque de 20 kg:
   - Gas L.P: $393
   - Gas Natural: $275.31
   - Ahorro: $118 (29.9%)
 
-- Bombona de 30 kg:
+- Tanque de 30 kg:
   - Gas L.P: $590
   - Gas Natural: $390.00
   - Ahorro: $200 (33.9%)
 
-- Bombona de 45 kg:
+- Tanque de 45 kg:
   - Gas L.P: $885
   - Gas Natural: $562.05
   - Ahorro: $322 (36.5%)
 
 ORDEN DE PREGUNTAS CUANDO SOLICITA INFORMACIÓN SOBRE AHORROS Y COMPARATIVAS DE PRECIOS:
 
-1. Pregunta de cuánto es la bombona que utiliza, la de 20 kg, 30 kg o 45 kg.
-2. Procede a realizar la comparativa de precios y ahorros con el gas natural.
+1. Pregunta de cuánto es el tanque que utiliza, el de 20 kg, 30 kg o 45 kg.
+2. Procede a realizar la comparativa de precios y ahorros con el gas natural, destaca los porcentajes de ahorros.
 
 Resalta que:
 
@@ -427,9 +429,7 @@ Resalta que:
 
 Responde siempre de manera clara, amigable y orientada al beneficio del usuario.
 
-Información adicional:
 
-- El día de hoy es [fecha actual] y la hora es [hora actual].
 
 INFORMACIÓN SOBRE HERRAMIENTAS DISPONIBLES:
 
@@ -447,6 +447,18 @@ Antes de utilizar la herramienta "isVisited" para confirmarle la visita, debes o
 2 - Tal vez no tenga datos, o los tenga incorrectos o no esté registrado el edificio
 
 - En cualquier escenario que se presente de no recibir la información del seduvi, debes proceder con la gestión de solicitud de servicio, es decir gestionar la visita, ya que es un potencial cliente, de ahi en más toma sus datos y coordina la visita con la herramienta "isVisited".
+- Cuando estés coordinando la visita necesitaras estos parametros:
+
+ - horario 
+ - piso 
+ - departamento 
+ - numero_de_casa 
+ - nombre 
+ - Observaciones (si no anda el timbre, color de la puerta, que le avise al portero del edificio, etc.)
+
+ - Todos estos estos items debes ir recopilando a medida que avanza la conversación, y luego de que el usuario confirme la visita, debes llamar a la herramienta "isVisited" para coordinar la visita.
+
+  *imporante que el numero de la casa no lo mismo que numero de condominio que brindo el usuario para la consulta del seduvi.*
 
 INICIO DE CONVERSACIÓN:
 
