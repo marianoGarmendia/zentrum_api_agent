@@ -351,6 +351,9 @@ const newState = Annotation.Root({
 //   // other params...
 // }).bindTools(tools);
 
+
+
+
 export const model = new ChatOpenAI({
   model: "gpt-4o",
   streaming: true,
