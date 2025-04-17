@@ -79,13 +79,17 @@ const visitaSchema = z.object({
 type VisitaInput = z.infer<typeof visitaSchema>;
 
 // Definición de la herramienta
-const crearVisita = async ({departamento, piso, numero_de_casa,  nombre, id, horario, observacion}:VisitaInput) => {
+const crearVisita = async ({departamento, piso, numero_de_casa,  nombre, id, horario, observacion}:VisitaInput, config:any) => {
     // let config = { configurable: { thread_id: thread_id } };
-    // const state = await workflow.getState(config);
+    const state = await workflow.getState(config);
+
+    const id_visita = state.values.info_visita.ID_VISITA
     // const tool_call_id =
     //   state.values.messages[state.values.messages.length - 1].tool_calls[0].id;
       
       console.log("id seduvi en crear visita", id);
+      console.log("id visita en crear visita", id_visita);
+      
       const prompt = `
         informacion de la visita:
         departamento: ${departamento}
@@ -110,7 +114,7 @@ const crearVisita = async ({departamento, piso, numero_de_casa,  nombre, id, hor
           TIPO_VISITA: 1,
           FORMA_VISITA: 0,
           PROPS: {
-            id_visita: "", // ID de la visita (puede ser vacío para que el servidor lo genere automáticamente) en el caso de haber una segunda petición 
+            id_visita: id_visita || "", // ID de la visita (puede ser vacío para que el servidor lo genere automáticamente) en el caso de haber una segunda petición 
             id_place: id,
             horario: horario,
             cliente: nombre,
@@ -129,12 +133,62 @@ const crearVisita = async ({departamento, piso, numero_de_casa,  nombre, id, hor
     }
 
     const data = await response.json();
+    
+    if(data){
+      state.values.info_visita = data;
+    }
+
     return data;
   } catch (error) {
     console.error("Error al crear la visita:", error);
     throw error;
   }
 };
+
+// Body de la petición para crear la visita
+// {
+//   COD_EMP_MVX: 1,
+//   TIPO_VISITA: 1,
+//   FORMA_VISITA: 0,
+//   PROPS: {
+//     id_visita: "", // ID de la visita (puede ser vacío para que el servidor lo genere automáticamente) en el caso de haber una segunda petición 
+//     id_place: id,
+//     horario: horario,
+//     cliente: nombre,
+//     observacion: prompt,
+//   }
+ 
+// }
+
+// respuesta despues de crear la visita
+const respuesta_crear_visita = {
+  "COD_EMP_MVX": 1,
+  "ID_USUARIO": 1,
+  "FECHA_PLANIFICADA": "2025-04-17T14:59:36.285Z",
+  "TIPO_VISITA": 1,
+  "FORMA_VISITA": 0,
+  "ESTADO": 0,
+  "PROPS": {
+    "id_place": 1,
+    "observacion": "la observacion"
+  },
+  "ID_RUTA": null,
+  "ID_CLIENTE": null,
+  "ID_CONTACTO": null,
+  "ID_CAPTACION": null,
+  "TITULO": null,
+  "FECHA_VISITA": null,
+  "HORA_VISITA": null,
+  "FECHA_INICIADA": null,
+  "FECHA_FINALIZADA": null,
+  "FECHA_CANCELADA": null,
+  "DURACION": null,
+  "ID_EJECUTOR": null,
+  "ID_RESPONSABLE": null,
+  "ID_VISITA": 102,
+  "FECHA_CREADO": "2025-04-17T14:59:36.306Z",
+  "FECHA_UPD": "2025-04-17T14:59:36.306Z"
+}
 
 const get_seduvi = tool(
   async ({ alcaldia, calle, colonia, numero }, config) => {
@@ -211,7 +265,7 @@ const get_seduvi = tool(
     schema: z.object({
       alcaldia: z.string().describe("Lugar donde se encuentra el inmueble"),
       calle: z.string().describe("Calle donde se encuentra el inmueble"),
-      numero: z.string().describe("Numero de condominio donde se encuentra el inmueble"),
+      numero: z.string().describe("Numero de condominio donde se encuentra el inmueble, es el número externo"),
       colonia: z.string().describe("Colonia donde se encuentra el inmueble"),
     }),
   }
@@ -256,7 +310,7 @@ const isVisited = tool(
   async ({ observacion, horario ,piso,departamento, numero_de_casa, nombre}, config) => {
     // let config = { configurable: { thread_id: thread_id } };
 
-    if(!horario  || !numero_de_casa || !piso || !departamento || !nombre) return "Faltan datos para coordinar la visita, por favor verifica los datos ingresados"
+    if(!horario  || !numero_de_casa || !piso || !departamento || !nombre) return "Faltan datos para coordinar la visita, ayuda al usuario a completar la inforacion faltante e indicale cuals son los datos que faltan para coordinar la visita"
 
     const state = await workflow.getState({configurable: {thread_id: config.configurable.thread_id}});
    
@@ -280,7 +334,7 @@ const isVisited = tool(
       horario: horario,
       id: id,
       observacion
-    })
+    }, config)
 
     console.log("response visita", response_visita);
     
@@ -509,12 +563,12 @@ Información que debe recopilar la herramienta "isVisited" luego de haber consul
 - Horario: días y franja horaria disponible para ser visitado.
 - Nombre: nombre del usuario (esto puede ser capturado al inicio de la conversación, cuando lo saluda).
 - Observación: alguna observación que necesite hacer (si no anda el timbre, color de la puerta, que le avise al portero del edificio, etc.).
-- numero de casa: número de casa del usuario (esto puede ser capturado al inicio de la conversación, cuando lo saluda).
-- piso: piso del usuario (esto puede ser capturado al inicio de la conversación, cuando lo saluda).
-- departamento: departamento del usuario (esto puede ser capturado al inicio de la conversación, cuando lo saluda).
+- numero de casa: número de casa del usuario 
+- piso: piso del usuario 
+- departamento: departamento del usuario 
 
 ### IMPORTANTE
-- El numero de la casa no lo mismo que numero de condominio
+- El numero de la casa puede ser el mismo que el condominio o no, eso validarlo con el usuario, si no encuentran solucion utliza ese numero de condominio para la visita.
 
 ### Regla estricta
 - NO RESPONDAS NADA FUERA DEL CONTEXTO DE LA CONSULTA DEL SEDUVI , LA COORDINACIÓN DE LA VISITA , LA SOLICITUD DE SERVICIO Y LO RELACIONADO A LA INFORMACION SOBRE GAS NATURGY Y EL CONTEXTO DE TU OBJETIVO.
