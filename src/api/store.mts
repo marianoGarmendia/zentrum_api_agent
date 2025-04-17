@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import { zValidator } from "@hono/zod-validator";
 import * as schemas from "../schemas.mjs";
 import { HTTPException } from "hono/http-exception";
@@ -7,6 +8,24 @@ import type { Item } from "@langchain/langgraph";
 import { handleAuthEvent } from "../auth/custom.mjs";
 
 const api = new Hono();
+
+// 👇 APLICAR CORS GLOBALES
+api.use(
+  '*',
+  cors({
+    origin: (origin) => {
+      // Permití tu frontend (Render, Vercel, localhost, etc.)
+      const allowedOrigins = [
+        'http://localhost:5173',
+        'https://langgraph-agent-chat-ui.onrender.com'
+      ];
+      return allowedOrigins.includes(origin ?? '') ? origin : '';
+    },
+    allowHeaders: ['Content-Type', 'Authorization'],
+    allowMethods: ['GET', 'POST', 'OPTIONS'],
+    credentials: true
+  })
+);
 
 const validateNamespace = (namespace: string[]) => {
   if (!namespace || namespace.length === 0) {

@@ -1,6 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import { v4 as uuid4 } from "uuid";
 
 import * as schemas from "../schemas.mjs";
@@ -10,6 +11,24 @@ import { stateSnapshotToThreadState } from "../state.mjs";
 import { jsonExtra } from "../utils/hono.mjs";
 
 const api = new Hono();
+
+// 👇 APLICAR CORS GLOBALES
+api.use(
+  '*',
+  cors({
+    origin: (origin) => {
+      // Permití tu frontend (Render, Vercel, localhost, etc.)
+      const allowedOrigins = [
+        'http://localhost:5173',
+        'https://langgraph-agent-chat-ui.onrender.com'
+      ];
+      return allowedOrigins.includes(origin ?? '') ? origin : '';
+    },
+    allowHeaders: ['Content-Type', 'Authorization'],
+    allowMethods: ['GET', 'POST', 'OPTIONS'],
+    credentials: true
+  })
+);
 
 // Threads Routes
 api.post("/threads", zValidator("json", schemas.ThreadCreate), async (c) => {

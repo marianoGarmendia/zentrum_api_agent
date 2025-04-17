@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
-
+import { cors } from "hono/cors";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
 
@@ -10,6 +10,24 @@ import { Assistants } from "../storage/ops.mjs";
 import * as schemas from "../schemas.mjs";
 import { HTTPException } from "hono/http-exception";
 const api = new Hono();
+
+// 👇 APLICAR CORS GLOBALES
+api.use(
+  '*',
+  cors({
+    origin: (origin) => {
+      // Permití tu frontend (Render, Vercel, localhost, etc.)
+      const allowedOrigins = [
+        'http://localhost:5173',
+        'https://langgraph-agent-chat-ui.onrender.com'
+      ];
+      return allowedOrigins.includes(origin ?? '') ? origin : '';
+    },
+    allowHeaders: ['Content-Type', 'Authorization'],
+    allowMethods: ['GET', 'POST', 'OPTIONS'],
+    credentials: true
+  })
+);
 
 const RunnableConfigSchema = z.object({
   tags: z.array(z.string()).optional(),

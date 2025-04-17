@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { streamSSE } from "hono/streaming";
+import { cors } from "hono/cors";
 import { getAssistantId } from "../graph/load.mjs";
 import { zValidator } from "@hono/zod-validator";
 import * as schemas from "../schemas.mjs";
@@ -17,6 +18,24 @@ import { v4 as uuid4 } from "uuid";
 import type { AuthContext } from "../auth/index.mjs";
 
 const api = new Hono();
+
+// 👇 APLICAR CORS GLOBALES
+api.use(
+  '*',
+  cors({
+    origin: (origin) => {
+      // Permití tu frontend (Render, Vercel, localhost, etc.)
+      const allowedOrigins = [
+        'http://localhost:5173',
+        'https://langgraph-agent-chat-ui.onrender.com'
+      ];
+      return allowedOrigins.includes(origin ?? '') ? origin : '';
+    },
+    allowHeaders: ['Content-Type', 'Authorization'],
+    allowMethods: ['GET', 'POST', 'OPTIONS'],
+    credentials: true
+  })
+);
 
 const createValidRun = async (
   threadId: string | undefined,
