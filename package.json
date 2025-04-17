@@ -14,7 +14,7 @@
     "clean": "npx -y bun scripts/clean.mjs",
     "build": "tsc",
     "dev": "tsx ./tests/utils.server.mts --dev",
-    "start": "tsx ./tests/utils.server.mts",
+    "start": "tsx ./tests/utils.server.mts --dev",
     "prepack": "pnpm run build",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
