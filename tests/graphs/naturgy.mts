@@ -229,13 +229,15 @@ const get_seduvi = tool(
       const data = await response.json();
       console.log("data seduvi",data[0]);
 
-      info_seduvi = data[0];
+      
 
       let mensaje = ""
 
-      if(data[0].id === undefined) {
+      if( !data[0] || !data[0]?.id) {
+        state.values.info_seduvi = null;
         mensaje = "No hemos encontrado información en el seduvi, por favor verifica los datos ingresados o quizás no tenemos información de ese inmueble y quieras solicitar nuevo servicio"
       }else{
+        state.values.info_seduvi = data[0];
         mensaje = "Hemos encontrado la siguiente información en el seduvi, podemos continuar con la coordinación de la visita"
       }
 
