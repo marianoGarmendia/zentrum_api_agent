@@ -83,7 +83,8 @@ const crearVisita = async ({departamento, piso, numero_de_casa,  nombre, id, hor
     // let config = { configurable: { thread_id: thread_id } };
     const state = await workflow.getState(config);
 
-    const id_visita = state.values.info_visita.ID_VISITA
+    const id_visita = state.values.info_visita?.ID_VISITA
+    const reference = config.configurable?.reference;
     // const tool_call_id =
     //   state.values.messages[state.values.messages.length - 1].tool_calls[0].id;
       
@@ -116,6 +117,7 @@ const crearVisita = async ({departamento, piso, numero_de_casa,  nombre, id, hor
           PROPS: {
             id_visita: id_visita || "", // ID de la visita (puede ser vacío para que el servidor lo genere automáticamente) en el caso de haber una segunda petición 
             id_place: id,
+            reference: reference || "",
             horario: horario,
             cliente: nombre,
             observacion: prompt,
