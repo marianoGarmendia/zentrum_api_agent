@@ -155,33 +155,39 @@ class Queue {
     if (this.buffer.length > 0) {
       return this.buffer.shift()!;
     }
-
+  
     return await new Promise<void>((resolve, reject) => {
-      let listener: (() => void) | undefined = undefined;
-
+      let listener: (() => void) | undefined;
+  
+      const onAbort = () => {
+        this.listeners = this.listeners.filter((l) => l !== listener);
+        clearTimeout(timer);
+        options.signal?.removeEventListener("abort", onAbort);
+        reject(new AbortError());
+      };
+  
       const timer = setTimeout(() => {
         this.listeners = this.listeners.filter((l) => l !== listener);
+        options.signal?.removeEventListener("abort", onAbort);
         reject(new TimeoutError());
       }, options.timeout);
-
+  
       listener = () => {
         this.listeners = this.listeners.filter((l) => l !== listener);
         clearTimeout(timer);
+        options.signal?.removeEventListener("abort", onAbort);
         resolve();
       };
-
-      // TODO: make sure we're not leaking callback here
-      if (options.signal != null) {
-        options.signal.addEventListener("abort", () => {
-          this.listeners = this.listeners.filter((l) => l !== listener);
-          clearTimeout(timer);
-          reject(new AbortError());
-        });
+  
+      if (options.signal) {
+        options.signal.addEventListener("abort", onAbort);
       }
-
+  
       this.listeners.push(listener);
     }).then(() => this.buffer.shift()!);
   }
+  
+  
 }
 
 class CancellationAbortController extends AbortController {
