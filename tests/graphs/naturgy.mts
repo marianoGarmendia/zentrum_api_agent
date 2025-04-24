@@ -78,7 +78,7 @@ const crearVisita = async (
     horario,
     observacion,
   }: VisitaInput,
-  config: any
+  config: any,
 ) => {
   const state = await workflow.getState(config);
 
@@ -113,14 +113,14 @@ const crearVisita = async (
           FORMA_VISITA: 0,
           PROPS: {
             id_visita: id_visita || "", // ID de la visita (puede ser vacío para que el servidor lo genere automáticamente) en el caso de haber una segunda petición
-            id_place: id,
+            id_place: id || "",
             reference: reference || "",
             horario: horario,
             cliente: nombre,
             observacion: prompt,
           },
         }),
-      }
+      },
     );
 
     console.log("response crear visita", response);
@@ -187,6 +187,14 @@ const crearVisita = async (
 //   "FECHA_UPD": "2025-04-17T14:59:36.306Z"
 // }
 
+// const newParams = {
+//   collection: string;
+//   field?: string;
+//   filter?: SeduviPlaceFilter;
+//   term?: string,
+//   limit?: number
+//   }
+
 const obtener_seduvi = tool(
   async ({ alcaldia, calle, colonia, numero }, config) => {
     const baseUrl = "https://faceapp_test.techbank.ai:4002/public/places";
@@ -229,12 +237,32 @@ const obtener_seduvi = tool(
 
       if (!data[0] || !data[0]?.id) {
         state.values.info_seduvi = null;
-        mensaje =
-          "No hemos encontrado información en el seduvi, por favor verifica los datos ingresados o quizás no tenemos información de ese inmueble y quieras solicitar nuevo servicio";
-      } else {
-        state.values.info_seduvi = data[0];
-        mensaje =
-          "Hemos encontrado la siguiente información en el seduvi, podemos continuar con la coordinación de la visita";
+
+        const termParams = new URLSearchParams({
+          collection: "seduvi",
+          term: `${calle} ${numero} `,
+        });
+
+        const url = `${baseUrl}?${termParams.toString()}`;
+        console.log("URL term:", url);
+        
+        const res = await fetch(url, {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        });
+
+        const data = await res.json();
+        if (!data[0] || !data[0]?.id) {
+          state.values.info_seduvi = null;
+          mensaje =
+            "No hemos encontrado información en el seduvi, por favor verifica los datos ingresados o quizás no tenemos información de ese inmueble y quieras solicitar nuevo servicio";
+        } else {
+          state.values.info_seduvi = data[0];
+          mensaje =
+            "Hemos encontrado la siguiente información en el seduvi, podemos continuar con la coordinación de la visita";
+        }
       }
 
       return new Command({
@@ -258,11 +286,11 @@ const obtener_seduvi = tool(
       numero: z
         .string()
         .describe(
-          "Numero de condominio donde se encuentra el inmueble, es el número externo"
+          "Numero de condominio donde se encuentra el inmueble, es el número externo",
         ),
       colonia: z.string().describe("Colonia donde se encuentra el inmueble"),
     }),
-  }
+  },
 );
 
 // const body_create_visita = {
@@ -302,7 +330,7 @@ const obtener_seduvi = tool(
 const crear_visita = tool(
   async (
     { observacion, horario, piso, departamento, numero_de_casa, nombre },
-    config
+    config,
   ) => {
     // let config = { configurable: { thread_id: thread_id } };
 
@@ -315,7 +343,7 @@ const crear_visita = tool(
 
     console.log(
       "id de info_seduvi desde el state en isVisited tool" +
-        state.values.info_seduvi.id
+        state.values.info_seduvi.id,
     );
 
     // info_visita = {
@@ -337,7 +365,7 @@ const crear_visita = tool(
         id: id || "",
         observacion,
       },
-      config
+      config,
     );
 
     console.log("response visita", response_visita);
@@ -361,37 +389,37 @@ const crear_visita = tool(
           new ToolMessage(
             "Hemos coordinado una visita pronto se pondran en contacto contigo",
             tool_call_id,
-            "isVisited"
+            "isVisited",
           ),
         ],
       },
     });
   },
   {
-    name:"crear_visita",
+    name: "crear_visita",
     description:
       "Obtiene los datos del domicilio para crear una visita por la solicitud de servicio",
     schema: z.object({
       observacion: z
         .string()
         .describe(
-          "Observaciones que tenga el cliente sobre su domicilio para la concertación de la visita, si no anda el timbre, color de la puerta, que le avise al portero del edificio, etc."
+          "Observaciones que tenga el cliente sobre su domicilio para la concertación de la visita, si no anda el timbre, color de la puerta, que le avise al portero del edificio, etc.",
         ),
       nombre: z.string().describe("Nombre del cliente"),
       horario: z
         .string()
         .describe(
-          "El horario y los dias que tiene disponible el usuario para recibir la visita, dias y horas disponibles para ser visitado/a"
+          "El horario y los dias que tiene disponible el usuario para recibir la visita, dias y horas disponibles para ser visitado/a",
         ),
       numero_de_casa: z.string().describe("Numero de casa"),
       piso: z.string().describe("Piso del cliente"),
       departamento: z.string().describe("Departamento del cliente"),
       telefono: z.string().describe("Telefono del cliente"),
     }),
-  }
+  },
 );
 
-const tools = [crear_visita , obtener_seduvi];
+const tools = [crear_visita, obtener_seduvi];
 
 const stateAnnotation = MessagesAnnotation;
 
@@ -585,7 +613,7 @@ async function callModel(state: typeof newState.State, config: any) {
   
   
     
-   `
+   `,
   );
 
   const response = await model.invoke([systemsMessage, ...messages]);
@@ -594,9 +622,8 @@ async function callModel(state: typeof newState.State, config: any) {
   console.log(state.info_seduvi);
   console.log(state.info_visita);
 
-  //   console.log("response: ", response);
+ 
 
-  console.log("state en call model", state);
 
   const cadenaJSON = JSON.stringify(messages);
   // Tokeniza la cadena y cuenta los tokens
