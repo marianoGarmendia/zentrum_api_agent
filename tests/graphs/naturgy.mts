@@ -325,7 +325,7 @@ const crear_visita = tool(
     // }
 
     // id del seduvi
-    const { id } = info_seduvi;
+    const id = info_seduvi?.id;
 
     const response_visita = await crearVisita(
       {
@@ -334,7 +334,7 @@ const crear_visita = tool(
         piso,
         nombre: nombre,
         horario: horario,
-        id: id,
+        id: id || "",
         observacion,
       },
       config
@@ -368,7 +368,7 @@ const crear_visita = tool(
     });
   },
   {
-    name: "obtener_domicilio",
+    name:"crear_visita",
     description:
       "Obtiene los datos del domicilio para crear una visita por la solicitud de servicio",
     schema: z.object({

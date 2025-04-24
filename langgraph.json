@@ -1,0 +1,7 @@
+{
+    "dependencies": ["."],
+    "graphs": {
+      "agent": "./tests/graphs/naturgy.mts:workflow"
+    },
+    "env": ".env"
+  }
