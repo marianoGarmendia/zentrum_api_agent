@@ -238,9 +238,11 @@ const obtener_seduvi = tool(
       if (!data[0] || !data[0]?.id) {
         state.values.info_seduvi = null;
 
+
         const termParams = new URLSearchParams({
           collection: "seduvi",
-          term: `${calle} ${numero} `,
+          "filter[no_externo]": numero || "",
+          term: `Calle: ${calle || ""}, Alcaldia: ${alcaldia || ""}, Colonia: ${colonia || ""}`,
         });
 
         const url = `${baseUrl}?${termParams.toString()}`;
