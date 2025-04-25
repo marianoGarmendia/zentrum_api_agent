@@ -34,9 +34,7 @@ import { encode } from "gpt-3-encoder";
 //   context: contexts.clinica.context,
 // };
 
-let info_seduvi = {
-  id: "",
-};
+
 // let info_visita={};
 
 // process.env.LANGCHAIN_CALLBACKS_BACKGROUND = "true";
