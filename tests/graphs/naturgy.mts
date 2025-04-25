@@ -99,7 +99,7 @@ const crearVisita = async (
 
   try {
     const response = await fetch(
-      "https://faceapp_test.techbank.ai:4002/public/visitas/",
+      "https://faceapp.techbank.ai:4001/public/visitas/",
       {
         method: "POST",
         headers: {
@@ -197,7 +197,7 @@ const crearVisita = async (
 
 const obtener_seduvi = tool(
   async ({ alcaldia, calle, colonia, numero }, config) => {
-    const baseUrl = "https://faceapp_test.techbank.ai:4002/public/places";
+    const baseUrl = "https://faceapp.techbank.ai:4001/public/places";
     // let config = { configurable: { thread_id: thread_id } };
     const state = await workflow.getState({
       configurable: { thread_id: config.configurable.thread_id },
@@ -242,6 +242,7 @@ const obtener_seduvi = tool(
           collection: "seduvi",
           "filter[no_externo]": numero || "",
           term: `Calle: ${calle || ""}, Alcaldia: ${alcaldia || ""}, Colonia: ${colonia || ""}`,
+          limit: "1",
         });
 
         const url = `${baseUrl}?${termParams.toString()}`;
@@ -363,7 +364,7 @@ const crear_visita = tool(
     // }
 
     // id del seduvi
-    const id = info_seduvi?.id;
+    const id = state.values.info_seduvi?.id;
 
     const response_visita = await crearVisita(
       {
