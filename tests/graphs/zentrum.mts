@@ -17,13 +17,13 @@ import { encode } from "gpt-3-encoder";
 import {
   createbookingTool,
   getAvailabilityTool,
-} from "./semiusados-zentrum/tools/booking_cal.js";
+} from "../semiusados-zentrum/tools/booking_cal.js";
 // import { autoSchema } from "./semiusados-zentrum/types/autoSchema.js";
-import { buscarAutos } from "./semiusados-zentrum/findCars.js";
+import { buscarAutos } from "../semiusados-zentrum/findCars.js";
 // import { getUniversalFaq, noticias_y_tendencias } from "./firecrawl";
 // import { TavilySearchAPIRetriever } from "@langchain/community/retrievers/tavily_search_api";
-import { semiUsadosZentrum } from "./semiusados-zentrum/allcars.js";
-import { zentrum_info_tool } from "./semiusados-zentrum/tools/rag_zentrum.js";
+import { semiUsadosZentrum } from "../semiusados-zentrum/allcars.js";
+import { zentrum_info_tool } from "../semiusados-zentrum/tools/rag_zentrum.js";
 // import { contexts } from "./contexts.js";
 // import { info, log } from "console";
 // import { ToolCall } from "openai/resources/beta/threads/runs/steps.mjs";

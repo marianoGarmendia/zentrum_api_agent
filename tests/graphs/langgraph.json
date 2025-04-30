@@ -8,7 +8,8 @@
     "delay": "./delay.mts:graph",
     "dynamic": "./dynamic.mts:graph",
     "agent_simple": "./agent_simple.mts:graph",
-    "naturgy": "./naturgy.mts:workflow"
+    "naturgy": "./naturgy.mts:workflow",
+    "zentrum": "./zentrum.mts:workflow"
   },
   "ui": {
     "agent": "./agent/ui.tsx"
