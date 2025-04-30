@@ -10,7 +10,7 @@ export function buscarAutos(
     const anioNum = anio && !isNaN(Number(anio)) ? Number(anio) : null;
 const precioContadoNum = precio_contado && !isNaN(Number(precio_contado)) ? Number(precio_contado) : null;
 
-  const modeloInput = modelo?.toLowerCase().trim().split(/\s+/);
+  const modeloInput = modelo?.toLowerCase().trim().split(/\s+/) || ["ninguno"];
 
   const autosPuntuados = autos.map((auto) => {
     let score = 0;

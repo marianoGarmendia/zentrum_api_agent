@@ -1,6 +1,6 @@
 import { AIMessage, SystemMessage } from "@langchain/core/messages";
 import { tool } from "@langchain/core/tools";
-import { z } from "zod";
+import {  z } from "zod";
 import { ChatOpenAI } from "@langchain/openai";
 // import { TavilySearchResults } from "@langchain/community/tools/tavily_search";
 // import { humanNode } from "./semiusados-zentrum/human-node/human-node.js";
@@ -92,13 +92,15 @@ const get_cars = tool(
     const response = `Los autos encontrados segun el criterio de siguiente cirterio de búsqueda: modelo: ${modelo} combustible: ${combustible} , Transmision: ${transmision},año ${anio}, 
     precio: ${precio_contado?.toString()} 
     
-    son: ${JSON.stringify(primerosCincoAutos)}.
+    son: ${JSON.stringify(primerosCincoAutos ?? "No encontramos autos con esas caracteristicas")}.
     
     Por favor analiza los autos encontrados y selecciona el que consideres más relevante para el cliente.
     Además el cliente ha realizado la siguiente consulta: ${query}.
+    
+    - Ten en cuenta en la propiedad "tag" de cada auto, si es que tiene, para responder la consulta del cliente.
+    - Puede ser que en tag diga: consignacion, reservado, oportunidad o algo del estilo , si el ususario pregunto por oportunidades, entonces debes responderle que el auto es una oportunidad.
 
-    de ser necesario utiliza la herramienta: "tavily_search_result" para buscar en internet información adicional sobre el auto seleccionado y la consulta técnica del cliente.
-    responde con un mensaje estructurado de buena manera para pasarlo al siguiente nodo de evaluacion por otro modelo llm.`;
+    `;
 
     // const modelCars = new ChatOpenAI({
     //   model: "gpt-4o",
@@ -108,7 +110,7 @@ const get_cars = tool(
     try {
       // const response = await modelCars.invoke(prompt);
       if (!primerosCincoAutos)
-        return "Estamos teniendo problemas para encontrar autos, por favor intentalo nuevamente mas tarde";
+        return "No hermos encontrado autos con esas caracteristicas";
       return response;
     } catch (error) {
       console.error("Error al buscar autos:", error);
@@ -120,7 +122,7 @@ const get_cars = tool(
     name: "Catalogo_de_Vehiculos",
     description: `Busca en la base de datos de vehículos seminuevos y devuelve los resultados más relevantes según los criterios proporcionados.`,
     schema: z.object({
-      modelo: z.string().describe("Modelo del vehículo"),
+      modelo: z.string().describe("Modelo del vehículo").nullable(),
       combustible: z
         .enum(["Gasolina", "Diesel", "Eléctrico"])
         .describe(
@@ -131,10 +133,10 @@ const get_cars = tool(
         .string()
         .describe("Tipo de transmisión del vehículo")
         .nullable(),
-      anio: z.string().describe("Año del vehículo").nullable(),
+      anio: z.string().describe("Año del vehículo, valores válidos de ejemplo: 2019,2020,2021,2022").nullable(),
       precio_contado: z
         .string()
-        .describe("Precio de contado aproximado del vehículo")
+        .describe("Precio de contado aproximado del vehículo, valores validos de ejemplo, no utilizan puntos: 43000000, 35000000, 40000000, 23990000, 52990000")
         .nullable(),
       query: z
         .string()
@@ -181,13 +183,13 @@ Calculado con una tasa referencial de 1,74.`,
     schema: z.object({
       valor_vehiculo: z
         .string()
-        .describe("Valor del vehículo para la simulacion del credito"),
+        .describe("Valor del vehículo para la simulacion del credito").nullable(),
       monto_a_financiar: z
         .string()
-        .describe("Monto a financiar para la simulacion del credito"),
+        .describe("Monto a financiar para la simulacion del credito").nullable(),
       cuotas: z
         .enum(["6", "12", "24", "48"])
-        .describe("Cantidad de cuotas para la simulacion del credito"),
+        .describe("Cantidad de cuotas para la simulacion del credito").nullable(),
     }),
   },
 );
@@ -242,9 +244,10 @@ Tu objetivo es **asistir al cliente** en:
   - modelo: string (modelo del vehículo)
   - combustible: string (tipo de combustible)
   - transmision: string (tipo de transmisión)
-  - anio: number (año del vehículo)
-  - precio_contado: number (precio contado)
+  - anio: string (año del vehículo)
+  - precio_contado: string (precio contado)
   - query: string (consulta o comentario del cliente)
+  
   
 
 ---
@@ -284,6 +287,8 @@ Tu objetivo es **asistir al cliente** en:
 
 ### REGLA PARA TODAS LAS HERRAMIENTAS
 **A los paraemtros que no tengas valores ingresados por el usuario le asignas null**
+**Siempre trata al menos de recopilar toda la información necesaria para llamar a la herramienta.**
+**Si el cliente no tiene claro alguna opción preguntale cual es su preferencia en la búsqueda***
 
 ## 📏 Reglas de Uso de Herramientas
 
@@ -339,6 +344,13 @@ Tu objetivo es **asistir al cliente** en:
 **Agente:** "Podemos coordinar una visita para tasarlo. ¿Qué día y franja horaria te quedarían mejor?"
 
 ---
+
+### REGLAS IMPORTANTES
+- No respondas nada por fuera de lo que es el asesoramiento al cliente por seminuevos de zentrum, no hables de otros temas.
+- No hables de otras empresa de ventas de autos, solo de zentrum.
+- Preguntale el nombre al ussuario para hablarle de manera personalizada.
+
+
 
 ## 🕐 Contexto Actual
 
