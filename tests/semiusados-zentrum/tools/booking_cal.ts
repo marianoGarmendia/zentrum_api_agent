@@ -1,10 +1,10 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 import { ChatOpenAI } from "@langchain/openai";
-import { humanNode } from "../human-node/human-node";
-import { workflow } from "../../zentrum";
-import { AIMessage } from "@langchain/core/messages";
-import type { toolInput } from "../human-node/human-node";
+// import { humanNode } from "../human-node/human-node";
+// import { workflow } from "../../zentrum.js";
+// import { AIMessage } from "@langchain/core/messages";
+// import type { toolInput } from "../human-node/human-node";
 
 const CAL_API_KEY = process.env.CAL_ZENTRUM_API_KEY;
 
@@ -29,49 +29,47 @@ interface Data {
 // Herramienta para agendar una cita en cal
 export const createbookingTool = tool(
   async ({ name, start, email }, _config) => {
-    const state = await workflow.getState({
-      configurable: { thread_id: _config.configurable.thread_id },
-    });
+    // const state = await workflow.getState({
+    //   configurable: { thread_id: _config.configurable.thread_id },
+    // });
 
-  
-      const fechaOriginal = new Date(start);
-      // Restar 3 horas (3 * 60 * 60 * 1000 milisegundos)
-      const fechaAjustada = new Date(
-        fechaOriginal.getTime() + 3 * 60 * 60 * 1000
-      ).toISOString();
+    const fechaOriginal = new Date(start);
+    // Restar 3 horas (3 * 60 * 60 * 1000 milisegundos)
+    const fechaAjustada = new Date(
+      fechaOriginal.getTime() + 3 * 60 * 60 * 1000,
+    ).toISOString();
 
-      const fechaOriginalIso = fechaOriginal.toISOString();
-      console.log("fecha original: " + fechaOriginal);
-      console.log("fecha original en ISO: " + fechaOriginal.toISOString());
+    // const fechaOriginalIso = fechaOriginal.toISOString();
+    console.log("fecha original: " + fechaOriginal);
+    console.log("fecha original en ISO: " + fechaOriginal.toISOString());
 
-      console.log("fecha ajustada: " + fechaAjustada);
+    console.log("fecha ajustada: " + fechaAjustada);
 
-      try {
-        const response = await fetch("https://api.cal.com/v2/bookings", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${CAL_API_KEY}`,
-            "cal-api-version": "2024-08-13",
-            "Content-Type": "application/json",
+    try {
+      const response = await fetch("https://api.cal.com/v2/bookings", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${CAL_API_KEY}`,
+          "cal-api-version": "2024-08-13",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          attendee: {
+            name: name,
+            timeZone: "America/Santiago",
+            language: "es",
+            email: email,
           },
-          body: JSON.stringify({
-            attendee: {
-              name: name,
-              timeZone: "America/Santiago",
-              language: "es",
-              email: email,
-            },
-            eventTypeId: 2362500, // aca va empresa.eventTypeId
-            start: fechaAjustada, // Asegúrate de que start es un string en formato "YYYY-MM-DDTHH:mm:ss.SSSZ"
-          }),
-        });
+          eventTypeId: 2362500, // aca va empresa.eventTypeId
+          start: fechaAjustada, // Asegúrate de que start es un string en formato "YYYY-MM-DDTHH:mm:ss.SSSZ"
+        }),
+      });
 
-        const isBooking = await response.json();
-        return isBooking;
-      } catch (error) {
-        throw new Error("Error al crear la reserva: " + error);
-      }
-   
+      const isBooking = await response.json();
+      return isBooking;
+    } catch (error) {
+      throw new Error("Error al crear la reserva: " + error);
+    }
   },
   {
     name: "createbookingTool",
@@ -83,7 +81,7 @@ export const createbookingTool = tool(
         .describe("Fecha y hora de la reserva en formato ISO 8601 "),
       email: z.string().describe("Email del asistente"),
     }),
-  }
+  },
 );
 
 // Herramienta para obtener la disponibilidad del evento en CAL
@@ -93,8 +91,6 @@ export const getAvailabilityTool = tool(
     console.log("startTime:", startTime);
     console.log("endTime:", endTime);
 
-
-
     try {
       const response = await fetch(
         `https://api.cal.com/v2/slots/available?startTime=${startTime}&endTime=${endTime}&eventTypeId=2362500`,
@@ -103,7 +99,7 @@ export const getAvailabilityTool = tool(
           headers: {
             Authorization: `Bearer ${CAL_API_KEY}`,
           },
-        }
+        },
       );
 
       const isAvailability = await response.json();
@@ -115,7 +111,7 @@ export const getAvailabilityTool = tool(
         !isAvailability.data.slots
       ) {
         throw new Error(
-          "La respuesta de la API no contiene datos válidos de disponibilidad"
+          "La respuesta de la API no contiene datos válidos de disponibilidad",
         );
       }
 
@@ -127,7 +123,7 @@ export const getAvailabilityTool = tool(
         data.slots[fecha].forEach((slot: Slot) => {
           const fechaOriginal = new Date(slot.time);
           const fechaAjustada = new Date(
-            fechaOriginal.getTime() - 3 * 60 * 60 * 1000
+            fechaOriginal.getTime() - 3 * 60 * 60 * 1000,
           );
           horarios_disponibles.push(fechaAjustada.toISOString());
         });
@@ -143,7 +139,7 @@ export const getAvailabilityTool = tool(
     } catch (error) {
       console.error("Error en getAvailabilityTool:", error);
       throw new Error(
-        "Error al obtener la disponibilidad: " + (error as Error).message
+        "Error al obtener la disponibilidad: " + (error as Error).message,
       );
     }
   },
@@ -155,15 +151,15 @@ export const getAvailabilityTool = tool(
       startTime: z
         .string()
         .describe(
-          "Fecha y hora de inicio de la disponibilidad en formato ISO 8601,  Ejemplo: 2025-02-13T16:00:00.000Z"
+          "Fecha y hora de inicio de la disponibilidad en formato ISO 8601,  Ejemplo: 2025-02-13T16:00:00.000Z",
         ),
       endTime: z
         .string()
         .describe(
-          "Fecha y hora de fin de la disponibilidad en formato ISO 8601, (Ej: 2025-02-13T16:00:00.000Z)"
+          "Fecha y hora de fin de la disponibilidad en formato ISO 8601, (Ej: 2025-02-13T16:00:00.000Z)",
         ),
     }),
-  }
+  },
 );
 
 // export const check_availability_by_professional_tool = tool(

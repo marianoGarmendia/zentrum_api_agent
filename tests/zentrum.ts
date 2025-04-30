@@ -1,26 +1,11 @@
-import {
-  AIMessage,
-  BaseMessage,
-  HumanMessage,
-  SystemMessage,
-  RemoveMessage,
-  ToolMessage,
-  type BaseMessageLike,
-} from "@langchain/core/messages";
+import { AIMessage, SystemMessage } from "@langchain/core/messages";
 import { tool } from "@langchain/core/tools";
-import { nullable, z } from "zod";
+import { z } from "zod";
 import { ChatOpenAI } from "@langchain/openai";
-import { TavilySearchResults } from "@langchain/community/tools/tavily_search";
-import { humanNode } from "./semiusados-zentrum/human-node/human-node.js";
+// import { TavilySearchResults } from "@langchain/community/tools/tavily_search";
+// import { humanNode } from "./semiusados-zentrum/human-node/human-node.js";
 
-import {
-  START,
-  StateGraph,
-  interrupt,
-  Command,
-  task,
-  END,
-} from "@langchain/langgraph";
+import { StateGraph, END } from "@langchain/langgraph";
 import {
   MemorySaver,
   Annotation,
@@ -28,18 +13,12 @@ import {
 } from "@langchain/langgraph";
 import { ToolNode } from "@langchain/langgraph/prebuilt";
 
-import {
- 
-  cotizacion,
-  mi_cobertura,
-  getPisos2,
-} from "./pdf-loader_tool.js";
 import { encode } from "gpt-3-encoder";
 import {
   createbookingTool,
   getAvailabilityTool,
 } from "./semiusados-zentrum/tools/booking_cal.js";
-import { autoSchema } from "./semiusados-zentrum/types/autoSchema.js";
+// import { autoSchema } from "./semiusados-zentrum/types/autoSchema.js";
 import { buscarAutos } from "./semiusados-zentrum/findCars.js";
 // import { getUniversalFaq, noticias_y_tendencias } from "./firecrawl";
 // import { TavilySearchAPIRetriever } from "@langchain/community/retrievers/tavily_search_api";
@@ -69,18 +48,18 @@ const newState = Annotation.Root({
 
 // });
 
-const tavilySearch = new TavilySearchResults({
-  apiKey: process.env.TAVILY_API_KEY,
-  maxResults: 5,
-  searchDepth: "deep",
-});
+// const tavilySearch = new TavilySearchResults({
+//   apiKey: process.env.TAVILY_API_KEY,
+//   maxResults: 5,
+//   searchDepth: "deep",
+// });
 
-type AutoInput = z.infer<typeof autoSchema>;
+// type AutoInput = z.infer<typeof autoSchema>;
 
 const get_cars = tool(
   async (
     { modelo, combustible, transmision, anio, precio_contado, query },
-    config
+    config,
   ) => {
     // const state = await workflow.getState({
     //   configurable: { thread_id: config.configurable.thread_id },
@@ -101,7 +80,7 @@ const get_cars = tool(
 
     const autosEncontrados = buscarAutos(
       { modelo, combustible, transmision, anio, precio_contado },
-      semiUsadosZentrum
+      semiUsadosZentrum,
     );
     if (!query) query = "No hay consulta del cliente";
     const primerosCincoAutos = autosEncontrados.slice(0, 5);
@@ -145,7 +124,7 @@ const get_cars = tool(
       combustible: z
         .enum(["Gasolina", "Diesel", "Eléctrico"])
         .describe(
-          "Tipo de combustible del vehículo (Gasolina, Diesel o Eléctrico)"
+          "Tipo de combustible del vehículo (Gasolina, Diesel o Eléctrico)",
         )
         .nullable(),
       transmision: z
@@ -160,11 +139,11 @@ const get_cars = tool(
       query: z
         .string()
         .describe(
-          "Consulta o requerimiento técnico del cliente sobre el vehículo"
+          "Consulta o requerimiento técnico del cliente sobre el vehículo",
         )
         .nullable(),
     }),
-  }
+  },
 );
 
 const simulacion_de_credito = tool(
@@ -210,7 +189,7 @@ Calculado con una tasa referencial de 1,74.`,
         .enum(["6", "12", "24", "48"])
         .describe("Cantidad de cuotas para la simulacion del credito"),
     }),
-  }
+  },
 );
 
 const tools = [
@@ -364,7 +343,7 @@ Tu objetivo es **asistir al cliente** en:
 ## 🕐 Contexto Actual
 
 Hoy es **${new Date().toLocaleDateString(
-      "es-ES"
+      "es-ES",
     )}**, hora **${new Date().toLocaleTimeString("es-ES")}**.
 
 ---
@@ -372,7 +351,7 @@ Hoy es **${new Date().toLocaleDateString(
 
 
 
-    `
+    `,
   );
 
   const response = await llm.invoke([systemsMessage, ...messages]);
@@ -410,69 +389,69 @@ function shouldContinue(state: typeof newState.State) {
   // Otherwise, we stop (reply to the user)
 }
 
-const toolNodo = async (state: typeof newState.State) => {
-  const { messages } = state;
+// const toolNodo = async (state: typeof newState.State) => {
+//   const { messages } = state;
 
-  const lastMessage = messages[messages.length - 1] as AIMessage;
-  console.log("toolNodo");
-  console.log("-----------------------");
-  console.log(lastMessage);
-  console.log(lastMessage?.tool_calls);
+//   const lastMessage = messages[messages.length - 1] as AIMessage;
+//   console.log("toolNodo");
+//   console.log("-----------------------");
+//   console.log(lastMessage);
+//   console.log(lastMessage?.tool_calls);
 
-  let toolMessage: BaseMessageLike = "un tool message" as BaseMessageLike;
-  if (lastMessage?.tool_calls?.length) {
-    const toolName = lastMessage.tool_calls[0].name;
-    const toolArgs = lastMessage.tool_calls[0].args as {
-      habitaciones: string | null;
-      precio_aproximado: string;
-      zona: string;
-      superficie_total: string | null;
-      piscina: "si" | "no" | null;
-      tipo_operacion: "venta" | "alquiler";
-    } & { query: string } & { startTime: string; endTime: string } & {
-      name: string;
-      start: string;
-      email: string;
-    };
-    let tool_call_id = lastMessage.tool_calls[0].id as string;
+//   let toolMessage: BaseMessageLike = "un tool message" as BaseMessageLike;
+//   if (lastMessage?.tool_calls?.length) {
+//     const toolName = lastMessage.tool_calls[0].name;
+//     const toolArgs = lastMessage.tool_calls[0].args as {
+//       habitaciones: string | null;
+//       precio_aproximado: string;
+//       zona: string;
+//       superficie_total: string | null;
+//       piscina: "si" | "no" | null;
+//       tipo_operacion: "venta" | "alquiler";
+//     } & { query: string } & { startTime: string; endTime: string } & {
+//       name: string;
+//       start: string;
+//       email: string;
+//     };
+//     let tool_call_id = lastMessage.tool_calls[0].id as string;
 
-    if (toolName === "Obtener_pisos_en_venta_dos") {
-      const response = await getPisos2.invoke(toolArgs);
-      if (typeof response !== "string") {
-        toolMessage = new ToolMessage(
-          "Hubo un problema al consultar las propiedades intentemoslo nuevamente",
-          tool_call_id,
-          "Obtener_pisos_en_venta_dos"
-        );
-      } else {
-        toolMessage = new ToolMessage(
-          response,
-          tool_call_id,
-          "Obtener_pisos_en_venta_dos"
-        );
-      }
-    } else if (toolName === "universal_info_2025") {
-      // const res = await pdfTool.invoke(toolArgs);
-      // toolMessage = new ToolMessage(res, tool_call_id, "universal_info_2025");
-    } else if (toolName === "get_availability_Tool") {
-      const res = await getAvailabilityTool.invoke(toolArgs);
-      toolMessage = new ToolMessage(res, tool_call_id, "get_availability_Tool");
-    } else if (toolName === "create_booking_tool") {
-      const res = await createbookingTool.invoke(toolArgs);
-      toolMessage = new ToolMessage(res, tool_call_id, "create_booking_tool");
-    }
-  } else {
-    return { messages };
-  }
-  // tools.forEach((tool) => {
-  //   if (tool.name === toolName) {
-  //     tool.invoke(lastMessage?.tool_calls?[0]['args']);
-  //   }
-  // });
-  // console.log("toolMessage: ", toolMessage);
+//     if (toolName === "Obtener_pisos_en_venta_dos") {
+//       const response = await getPisos2.invoke(toolArgs);
+//       if (typeof response !== "string") {
+//         toolMessage = new ToolMessage(
+//           "Hubo un problema al consultar las propiedades intentemoslo nuevamente",
+//           tool_call_id,
+//           "Obtener_pisos_en_venta_dos"
+//         );
+//       } else {
+//         toolMessage = new ToolMessage(
+//           response,
+//           tool_call_id,
+//           "Obtener_pisos_en_venta_dos"
+//         );
+//       }
+//     } else if (toolName === "universal_info_2025") {
+//       // const res = await pdfTool.invoke(toolArgs);
+//       // toolMessage = new ToolMessage(res, tool_call_id, "universal_info_2025");
+//     } else if (toolName === "get_availability_Tool") {
+//       const res = await getAvailabilityTool.invoke(toolArgs);
+//       toolMessage = new ToolMessage(res, tool_call_id, "get_availability_Tool");
+//     } else if (toolName === "create_booking_tool") {
+//       const res = await createbookingTool.invoke(toolArgs);
+//       toolMessage = new ToolMessage(res, tool_call_id, "create_booking_tool");
+//     }
+//   } else {
+//     return { messages };
+//   }
+//   // tools.forEach((tool) => {
+//   //   if (tool.name === toolName) {
+//   //     tool.invoke(lastMessage?.tool_calls?[0]['args']);
+//   //   }
+//   // });
+//   // console.log("toolMessage: ", toolMessage);
 
-  return { messages: [...messages, toolMessage] };
-};
+//   return { messages: [...messages, toolMessage] };
+// };
 
 // const delete_messages = async (state: typeof newState.State) => {
 //   const { messages, summary } = state;

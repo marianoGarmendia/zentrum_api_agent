@@ -1,4 +1,4 @@
-import { autoSchema, Auto, AutoInput } from "./types/autoSchema.js";
+import {  Auto, AutoInput } from "./types/autoSchema.js";
 
 export function buscarAutos(
   params: AutoInput,
