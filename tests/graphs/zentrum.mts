@@ -19,7 +19,7 @@ import {
   getAvailabilityTool,
 } from "../semiusados-zentrum/tools/booking_cal.js";
 // import { autoSchema } from "./semiusados-zentrum/types/autoSchema.js";
-import { buscarAutos } from "../semiusados-zentrum/findCars.js";
+import { buscarAutosMejorado } from "../semiusados-zentrum/findCars.js";
 // import { getUniversalFaq, noticias_y_tendencias } from "./firecrawl";
 // import { TavilySearchAPIRetriever } from "@langchain/community/retrievers/tavily_search_api";
 import { semiUsadosZentrum } from "../semiusados-zentrum/allcars.js";
@@ -58,7 +58,7 @@ const newState = Annotation.Root({
 
 const get_cars = tool(
   async (
-    { modelo, combustible, transmision, anio, precio_contado, query },
+    { modelo, combustible, transmision, anio, precio_contado, query, marca },
     config,
   ) => {
     // const state = await workflow.getState({
@@ -78,8 +78,8 @@ const get_cars = tool(
     //   );
     console.log("buscando autos");
 
-    const autosEncontrados = buscarAutos(
-      { modelo, combustible, transmision, anio, precio_contado },
+    const autosEncontrados = buscarAutosMejorado(
+      { modelo, combustible, transmision, anio, precio_contado, marca , query},
       semiUsadosZentrum,
     );
     if (!query) query = "No hay consulta del cliente";
@@ -89,7 +89,7 @@ const get_cars = tool(
 
     console.dir(primerosCincoAutos, { depth: null });
 
-    const response = `Los autos encontrados segun el criterio de siguiente cirterio de búsqueda: modelo: ${modelo} combustible: ${combustible} , Transmision: ${transmision},año ${anio}, 
+    const response = `Los autos encontrados segun el criterio de siguiente cirterio de búsqueda: marca:${marca}  modelo: ${modelo} combustible: ${combustible} , Transmision: ${transmision},año ${anio}, 
     precio: ${precio_contado?.toString()} 
     
     son: ${JSON.stringify(primerosCincoAutos ?? "No encontramos autos con esas caracteristicas")}.
@@ -122,7 +122,8 @@ const get_cars = tool(
     name: "Catalogo_de_Vehiculos",
     description: `Busca en la base de datos de vehículos seminuevos y devuelve los resultados más relevantes según los criterios proporcionados.`,
     schema: z.object({
-      modelo: z.string().describe("Modelo del vehículo").nullable(),
+      marca: z.string().describe("Marca del vehículo por ejemplo, AUDI, CUPRA, VOLKSWAGEN, SEAT").nullable(),
+      modelo: z.string().describe("Modelo del vehículo, por ejemplo: VOYAGE 1.6 MT Trendline, KAROQ TSI 1.4 AT, AUDI Q5 45 TFSI SPORT QUATTRO,AUDI Q2 35 TFSI").nullable(),
       combustible: z
         .enum(["Gasolina", "Diesel", "Eléctrico"])
         .describe(
@@ -241,7 +242,8 @@ Tu objetivo es **asistir al cliente** en:
 - **Uso:** Cuando el cliente pide ver autos o tiene preferencias específicas.
 - **Descripción:** Consulta el catálogo actualizado (marca, modelo, año, precio, kilometraje) y ofrece opciones.
 - **Parámetros:**
-  - modelo: string (modelo del vehículo)
+- marca: string (marca del vehículo) ejemplo, AUDI, CUPRA, VOLKSWAGEN, SEAT
+  - modelo: string (modelo del vehículo) ejemplo: VOYAGE 1.6 MT Trendline, KAROQ TSI 1.4 AT, AUDI Q5 45 TFSI SPORT QUATTRO,AUDI Q2 35 TFSI
   - combustible: string (tipo de combustible)
   - transmision: string (tipo de transmisión)
   - anio: string (año del vehículo)
