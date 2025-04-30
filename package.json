@@ -39,6 +39,7 @@
     "hono": "^4.5.4",
     "langsmith": "^0.2.15",
     "open": "^10.1.0",
+    "pdf-parse": "^1.1.1",
     "stacktrace-parser": "^0.1.10",
     "superjson": "^2.2.2",
     "tsx": "^4.19.3",
@@ -71,5 +72,4 @@
     "prettier": "^3.3.3",
     "vitest": "^3.0.5"
   }
- 
 }

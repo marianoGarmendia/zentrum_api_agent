@@ -14,7 +14,7 @@ loadEnv()
 const configPath = fileURLToPath(
   new URL(
     process.argv.findLast((arg) => arg.endsWith(".json")) ??
-      "./graphs/langgraph.json",
+      "../langgraph.json",
     import.meta.url,
   ),
 );
